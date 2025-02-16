@@ -35,7 +35,7 @@ cd yt_playlist_cleaner
 
 ### **2. Install Dependencies**
 
-Make sure you have Python 3.1+ installed, then install the required packages:
+Make sure you have Python 3.10+ installed, then install the required packages:
 ```bash
 pip install -r requirements.txt
 ```
