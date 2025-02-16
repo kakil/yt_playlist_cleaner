@@ -1,7 +1,5 @@
-# youtube_ops.py
 import streamlit as st
 from googleapiclient.discovery import build
-
 
 def get_youtube_client(credentials):
     """
@@ -9,10 +7,9 @@ def get_youtube_client(credentials):
     """
     return build('youtube', 'v3', credentials=credentials)
 
-
 def remove_all_videos_from_playlist(youtube, playlist_id):
     """
-    Removes all videos from the specified playlist.
+    Removes all videos from the specified playlist and displays the success message above the video list.
     """
     items = []
 
@@ -28,7 +25,7 @@ def remove_all_videos_from_playlist(youtube, playlist_id):
             response = request.execute()
         except Exception as e:
             st.error(f"Error retrieving playlist items: {e}")
-            return False
+            return
 
         # Collect (playlist item id, video id) for each item
         items += [
@@ -37,39 +34,21 @@ def remove_all_videos_from_playlist(youtube, playlist_id):
         ]
         request = youtube.playlistItems().list_next(request, response)
 
-    st.write(f"Total videos in playlist: {len(items)}")
-
-    if items:
-        for item_id, video_id in items:
-            try:
-                youtube.playlistItems().delete(id=item_id).execute()
-                st.write(f"Removed video {video_id}")
-            except Exception as e:
-                st.error(f"Failed to remove video {video_id}: {e}")
-        return True
-    else:
+    if not items:
         st.info("No videos found in the playlist.")
-        return False
+        return
 
-
-def remove_video_from_playlist(youtube, playlist_id, video_id):
-    """
-    Removes a single video from the specified playlist.
-    """
-    # Retrieve the playlist item for the given video
-    request = youtube.playlistItems().list(
-        part="id",
-        playlistId=playlist_id,
-        videoId=video_id
+    # ✅ Display the success message first
+    st.success(
+        f"✅ Successfully removed {len(items)} videos from the playlist."
     )
-    response = request.execute()
 
-    if response.get('items'):
-        playlist_item_id = response['items'][0]['id']
+    # ✅ Then display the list of removed videos
+    st.write("### Deleted Videos:")
+
+    for item_id, video_id in items:
         try:
-            youtube.playlistItems().delete(id=playlist_item_id).execute()
-            st.write(f"Removed video {video_id} from playlist.")
+            youtube.playlistItems().delete(id=item_id).execute()
+            st.write(f"✅ Removed video: `{video_id}`")
         except Exception as e:
-            st.error(f"Error removing video {video_id}: {e}")
-    else:
-        st.info("Video not found in the playlist.")
+            st.error(f"Failed to remove video {video_id}: {e}")
